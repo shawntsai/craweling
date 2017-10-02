@@ -1,17 +1,19 @@
+
+
 # -*- coding: utf-8 -*-
 import scrapy
 import datetime
 import seaborn as sns
 
 
-class TheamericaninterestSpider(scrapy.Spider):
+class InfoSpider(scrapy.Spider):
                        
-    name = 'reviews'
+    name = 'info'
     def start_requests(self):
         parent_urls = [
-              'http://www.drb.ie/essays?page=', 
-              'http://www.drb.ie/new-books?page=', 
-              'http://the-american-interest.com/c/reviews/',
+              # 'http://www.drb.ie/essays?page=', 
+              # 'http://www.drb.ie/new-books?page=', 
+              # 'http://the-american-interest.com/c/reviews/',
               'https://bookpage.com/reviews?page=', 
         ]
         
@@ -37,8 +39,8 @@ class TheamericaninterestSpider(scrapy.Spider):
             # yield scrapy.Request(url=url, callback=self.parse)
         
  
-        for i in range(2, 120):
-            bookpage_urls.append(parent_urls[3] + str(i))
+        for i in range(2, 130):
+            bookpage_urls.append(parent_urls[0] + str(i))
 
         for url in bookpage_urls:
             yield scrapy.Request(url=url, callback=self.parse_book_page)
@@ -65,10 +67,12 @@ class TheamericaninterestSpider(scrapy.Spider):
 
     def output(self, response):
         item = {} 
-        item['url'] = response.url
-        item['raw_content'] = response.body 
-        item['timestamp_crawl'] = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
-        item['content_type'] = "text/html; charset=utf-8"
+        item['author']= response.css('p.author-small a::text').extract_first()
+        item['title']= response.css('h4::text').extract_first().lstrip("\n").rstrip("\n")
 
+        item['genre']= response.css('.genre-links a::text').extract_first()
+        item['reviewer']= response.css('.author-small a::text').extract()[4]
+        # item['date']= response.css('.article-issue::text').extract_first()
+        item['issue'] = response.css('h2::text').extract_first().lstrip("\n").rstrip("\n")
         yield item
 
